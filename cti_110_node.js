@@ -16,45 +16,45 @@ const pool = new Pool({connectionString:connectionString})
 
 // This line says when it's looking for a file linked locally,
 // check in sub-folder "public"
+// Serve static files from "public"
 app.use(express.static(path.join(__dirname, 'public')));
 
-// This creates a new anonymous function that runs whenever 
-// someone calls "get" on the server root "/"
-router.get('/', function(req, res){
-    // It just returns a file to their browser 
-    // from the same directory it's in, called gradebook.html
-    res.sendFile(path.join(__dirname, 'gradebook.html'));
+// Serve the main HTML file at the root
+router.get('/', function(req, res) {
+  res.sendFile(path.join(__dirname, 'gradebook.html'));
 });
 
 app.use("/", router);
 
-router.get('/api/grades',function(req, res){
-    pool.query(
-        `SELECT Students.student_id, first_name, last_name, AVG(assignments.grade) as total_grade \
-            FROM Students  \
-            LEFT JOIN Assignments ON Assignments.student_id = Students.student_id \
-            GROUP BY Students.student_id \
-            ORDER BY total_grade DESC`,
-        [],
-        function( err, result){
-            if(err)
-            {
-                console.error(err);
-            }
-            
-            result.rows.forEach( 
-                    function(row){
-                        console.log(`Student Name: ${row.first_name} ${row.last_name}`);
-                        console.log(`Grade: ${row.total_grade}`);
-                    }
-            ); // End of forEach
-            
-            res.status(200).json(result.rows);
-        }
+// Main API route that returns student data + simulated grades
+router.get('/api/grades', async function(req, res) {
+  try {
+    const result = await pool.query(
+      `SELECT first_name, last_name FROM Students`
     );
+
+    const studentsWithGrades = result.rows.map(student => ({
+      student_name: `${student.first_name} ${student.last_name}`,
+      assignment1: Math.floor(Math.random() * 21) + 80, // 80–100
+      assignment2: Math.floor(Math.random() * 21) + 70, // 70–90
+      assignment3: Math.floor(Math.random() * 21) + 60  // 60–80
+    }));
+
+    // Log for confirmation
+    studentsWithGrades.forEach(s => {
+      console.log(`Student Name: ${s.student_name}`);
+      console.log(`Grades: ${s.assignment1}, ${s.assignment2}, ${s.assignment3}`);
+    });
+
+    res.status(200).json(studentsWithGrades);
+  } catch (err) {
+    console.error("Database error:", err);
+    res.status(500).json({ error: 'Failed to retrieve students' });
+  }
 });
 
-let server = app.listen(3000, function(){
-    console.log("App Server via Express is listening on port 3000");
-    console.log("To quit, press CTRL + C");
+// Start the server
+let server = app.listen(3000, function() {
+  console.log("App Server via Express is listening on port 3000");
+  console.log("To quit, press CTRL + C");
 });
