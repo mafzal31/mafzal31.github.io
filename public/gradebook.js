@@ -15,15 +15,13 @@ async function fetchGradeData() {
 
 function populateGradebook(data) {
   const tableBody = document.querySelector('#gradebook tbody');
-  tableBody.innerHTML = ''; // Clear any existing rows
+  tableBody.innerHTML = ''; // Clear existing rows
 
   data.forEach(student => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${student.student_name}</td>
-      <td>${student.assignment1}</td>
-      <td>${student.assignment2}</td>
-      <td>${student.assignment3}</td>
+      <td>${student.first_name} ${student.last_name}</td>
+      <td colspan="3">${student.total_grade.toFixed(2)}</td>
     `;
     tableBody.appendChild(row);
   });
