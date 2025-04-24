@@ -20,12 +20,13 @@ function populateGradebook(data) {
   data.forEach(student => {
     const row = document.createElement('tr');
     row.innerHTML = `
-      <td>${student.first_name} ${student.last_name}</td>
-      <td colspan="3">${student.total_grade.toFixed(2)}</td>
+      <td>${student.student_name}</td>
+      <td>${student.assignment1}</td>
+      <td>${student.assignment2}</td>
+      <td>${student.assignment3}</td>
     `;
     tableBody.appendChild(row);
   });
 }
 
-// Auto fetch when page loads
 window.onload = fetchGradeData;
