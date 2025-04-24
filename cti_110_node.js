@@ -1,37 +1,28 @@
-
-// This section loads modules.  It loads the Express server and stores
-// it in "express", then creates a application, a router, and a path handler
+// Load required modules
 const express = require('express');
 const app = express();
 const router = express.Router();
 const path = require('path');
+const { Pool } = require('pg');
 
-// This part sets up the database
-const {Pool} = require('pg');
-// You may need to modify the password or database name in the following line:
+// PostgreSQL connection string
 const connectionString = `postgres://postgres:CTI_110_WakeTech@localhost/Gradebook`;
-// The default password is CTI_110_WakeTech
-// The default database name is Gradebook
-const pool = new Pool({connectionString:connectionString})
+const pool = new Pool({ connectionString });
 
-// This line says when it's looking for a file linked locally,
-// check in sub-folder "public"
-// Serve static files from "public"
+// Serve static files (e.g. public/gradebook.js)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Serve the main HTML file at the root
+// Serve the main HTML page
 router.get('/', function(req, res) {
   res.sendFile(path.join(__dirname, 'gradebook.html'));
 });
 
 app.use("/", router);
 
-// Main API route that returns student data + simulated grades
+// API route that avoids querying missing "grade" column
 router.get('/api/grades', async function(req, res) {
   try {
-    const result = await pool.query(
-      `SELECT first_name, last_name FROM Students`
-    );
+    const result = await pool.query(`SELECT first_name, last_name FROM Students`);
 
     const studentsWithGrades = result.rows.map(student => ({
       student_name: `${student.first_name} ${student.last_name}`,
@@ -40,7 +31,7 @@ router.get('/api/grades', async function(req, res) {
       assignment3: Math.floor(Math.random() * 21) + 60  // 60–80
     }));
 
-    // Log for confirmation
+    // Optional console log for testing
     studentsWithGrades.forEach(s => {
       console.log(`Student Name: ${s.student_name}`);
       console.log(`Grades: ${s.assignment1}, ${s.assignment2}, ${s.assignment3}`);
