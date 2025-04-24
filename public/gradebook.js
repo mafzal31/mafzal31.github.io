@@ -30,3 +30,4 @@ function populateGradebook(data) {
 }
 
 window.onload = fetchGradeData;
+
